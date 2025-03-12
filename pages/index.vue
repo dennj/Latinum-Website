@@ -25,6 +25,17 @@
               <span class="text-green-500">agent.txt</span></span>
           </a>
         </div>
+
+
+        <div class="mt-12 flex flex-col items-center w-full max-w-6xl">
+          <h3 class="text-base font-semibold text-white">Backed by</h3>
+          <div class="mt-4 flex space-x-8">
+            <NuxtImg src="/images/dpl.avif" alt="DogPatch Labs" class="h-12" draggable="false" />
+            <NuxtImg src="/images/ndrc.avif" alt="NDRC" class="h-12" draggable="false" />
+          </div>
+        </div>
+
+
       </div>
     </section>
 
