@@ -1,0 +1,36 @@
+{
+  "name": "latinum-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@formkit/nuxt": "^1.6.9",
+    "@nuxt/content": "^3.3.0",
+    "@nuxt/eslint": "^1.2.0",
+    "@nuxt/image": "^1.9.0",
+    "@nuxtjs/google-gtag": "^1.0.4",
+    "@nuxtjs/robots": "^5.2.6",
+    "@nuxtjs/sitemap": "^7.2.7",
+    "@nuxtjs/supabase": "^1.5.0",
+    "@supabase/supabase-js": "^2.48.0",
+    "@tailwindcss/typography": "^0.5.16",
+    "@vueuse/core": "^13.0.0",
+    "@vueuse/nuxt": "^13.0.0",
+    "daisyui": "^4.12.24",
+    "nuxt": "^3.16.0",
+    "nuxt-anchorscroll": "^1.0.5",
+    "nuxt-gtag": "^3.0.2",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "nuxt-resend": "^0.0.2"
+  }
+}
