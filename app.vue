@@ -91,11 +91,6 @@ const navLinks = router.options.routes
           </div>
         </div>
       </div>
-
-      <!-- Lower Bar -->
-      <div class="py-5">
-
-      </div>
     </footer>
   </div>
   <Subscribe />
