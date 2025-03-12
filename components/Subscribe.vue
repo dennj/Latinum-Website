@@ -1,16 +1,16 @@
 <template>
     <!-- Subscribe Banner -->
-    <div class="fixed bottom-0 left-0 w-full p-4 bg-gray-900 bg-opacity-95 text-white shadow-lg transition-transform duration-500 z-[1000]"
+    <div class="fixed bottom-0 left-0 w-full p-4 bg-blue-950 bg-opacity-80 backdrop-blur-sm text-white shadow-lg transition-transform duration-500 z-[1000]"
         :class="{ 'translate-y-0': showBanner, 'translate-y-full': !showBanner }">
         <div class="max-w-3xl mx-auto flex flex-col md:flex-row justify-between items-center">
             <div class="md:mr-6">
                 <h1 class="text-xl font-bold">Stay Updated!</h1>
-                <p class="text-gray-300">Subscribe to receive updates on the latest developments in agentic payments.
+                <p class="text-gray-200">Subscribe to receive updates on the latest developments in agentic payments.
                 </p>
             </div>
             <div class="flex flex-col md:flex-row gap-2 mt-4 md:mt-0">
                 <input v-model="email" type="email" placeholder="Enter your email"
-                    class="p-2 border rounded-md text-black w-full md:w-auto">
+                    class="p-2 border rounded-md text-white w-full md:w-auto">
                 <button @click="subscribe"
                     class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Subscribe</button>
             </div>
