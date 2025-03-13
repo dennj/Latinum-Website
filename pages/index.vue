@@ -71,7 +71,7 @@
   <div class="container mx-auto text-center">
     <h3 class="text-3xl font-bold mb-4">Upcoming Event: Agentic AI in Dublin</h3>
     <p class="text-lg mb-6">
-      Join us on <strong>March 24</strong> at the <strong>Qualtrics Dublin office</strong> (5:30 PM onwards) for an
+      Join us on <strong>March 24</strong> at the <strong>Qualtrics Dublin office</strong> (5:30 PM to 8:30PM) for an
       exciting event on AI Agents.
     </p>
 
@@ -98,8 +98,6 @@
 </template>
 
 <script setup>
-import Subscribe from '@/components/Subscribe.vue';
-
 const features = [
   { title: 'Fully Agentic', description: 'Agents can exchange money autonomously.' },
   { title: 'Secure', description: 'Ensure safe and reliable transactions.' },
