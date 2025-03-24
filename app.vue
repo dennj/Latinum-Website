@@ -51,7 +51,7 @@ const navLinks = router.options.routes
             <ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 rounded-box w-52 bg-gray-800">
               <li v-for="link in navLinks" :key="link.path">
                 <a :href="link.path">
-                  {{ link.name }}
+                <!-- {{ link.name }} -->  
                 </a>
               </li>
             </ul>
@@ -59,7 +59,7 @@ const navLinks = router.options.routes
 
           <ul class="menu menu-horizontal px-4 hidden md:flex">
             <li v-for="link in navLinks" :key="link.path">
-              <a :href="link.path" class="hover:text-primary">{{ link.name }}</a>
+              <!-- <a :href="link.path" class="hover:text-primary">{{ link.name }}</a> -->  
             </li>
           </ul>
         </div>
