@@ -64,36 +64,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Agentic AI Event Section -->
-<!-- Agentic AI Event Section -->
-<section class="bg-gray-900 text-white py-12 relative z-10 flex items-center justify-center min-h-[50vh]">
-  <div class="container mx-auto text-center">
-    <h3 class="text-3xl font-bold mb-4">Upcoming Event: Agentic AI in Dublin</h3>
-    <p class="text-lg mb-6">
-      Join us on <strong>March 24</strong> at the <strong>Qualtrics Dublin office</strong> (5:30 PM to 8:30PM) for an
-      exciting event on AI Agents.
-    </p>
-
-    <p>
-      Enjoy <strong>pizza, beer, and soft drinks</strong> courtesy of 
-      <a href="https://jentic.com" class="text-blue-400 underline">Jentic</a> and Qualtrics.
-    </p>
-    <p class="mb-6">
-      We’ll also host <strong>lightning talks, live demos</strong>, and discussions on the latest work with AI agents.
-      We’ll confirm the agenda soon, but we plan to include a slot to compare the latest coder agents 
-      (Claude Coder vs Windsurf vs Cursor), and to talk about MCP and how it can supercharge agents 
-      (such as Claude Desktop, Cursor, Windsurf, Claude Coder, Manus/Open Manus).
-    </p>
-
-    <!-- Event Page Link -->
-    <div class="mt-6">
-      <a href="/Dublin%20Event" class="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition">
-        Register for the Event
-      </a>
-    </div>
-  </div>
-</section>
   </div>
 </template>
 
