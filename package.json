@@ -26,6 +26,7 @@
     "nuxt": "^3.16.1",
     "nuxt-anchorscroll": "^1.0.5",
     "nuxt-gtag": "^3.0.2",
+    "openai": "^4.91.0",
     "vue": "latest",
     "vue-router": "latest"
   },

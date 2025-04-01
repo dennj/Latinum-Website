@@ -168,17 +168,13 @@ const sendMessage = async () => {
   scrollToBottom()
 
   try {
-    const response = await fetch(
-      'https://api.tolki.ai/chat/v1/embed/22fcf298-da24-4b74-b4de-3d88b2b25d86/chat/e816a599-1016-4992-95ac-236d9c4c3e04/message',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'latinum',
-        },
-        body: JSON.stringify({ Message: messageText }),
-      }
-    )
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ Message: messageText, chatUUID: 'abc123', }),
+    })
 
     const data = await response.json()
     messages.value.push(...data)
