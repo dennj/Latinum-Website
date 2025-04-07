@@ -71,6 +71,7 @@
       </div>
     </section>
   </div>
+  <Subscribe />
 </template>
 
 <script setup>

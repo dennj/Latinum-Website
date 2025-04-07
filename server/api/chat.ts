@@ -1,65 +1,102 @@
-import OpenAI from 'openai'
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
-interface Message {
-  role: 'user' | 'system' | 'assistant'
-  content: string
-}
+// server/api/chat.ts
+import { ChatOpenAI } from '@langchain/openai'
+import { ChatPromptTemplate } from '@langchain/core/prompts'
+import { RunnableSequence } from '@langchain/core/runnables'
+import { findProductTool } from '@/server/tools/findProductTool'
+import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const message = body?.Message
-  const chatUUID = body?.chatUUID
+  const client = await serverSupabaseClient(event)
 
-  if (!message || !chatUUID) {
+  const { Message: message, wallet: wallet } = await readBody(event)
+
+  if (!message) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Message and chatUUID are required',
+      statusMessage: 'Message is required',
+    })
+  }
+  if (!wallet) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Wallet uuid is required',
     })
   }
 
-  const messages: Message[] = [
-    {
-      role: 'system',
-      content: 'You are a helpful assistant that helps users order groceries.',
-    },
-    {
-      role: 'user',
-      content: message,
-    },
-  ]
+  // Fetch wallet and orders
+  const { data: walletData, error } = await client
+    .from('wallet')
+    .select(`
+      name, email, address, phone, credit,
+      orders:orders (
+        id, title, price, created_at
+      )
+    `)
+    .eq('uuid', wallet)
+    .single()
 
-  // 1) Ask GPT for reply
-  const gptReply = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages,
-  })
+  if (error || !walletData) {
+    console.warn('Wallet not found or failed to fetch:', error)
+  }
 
-  const replyText = gptReply.choices?.[0]?.message?.content || 'Sorry, I could not respond.'
+  const credit = (walletData?.credit ?? 0) / 100
+  const ordersText = (walletData?.orders || []).map(order =>
+    `• ${order.title} – €${(order.price / 100).toFixed(2)}`
+  ).join('\n')
 
-  // 2) Call findProduct via local $fetch (API call)
+  const walletContext = `
+User Wallet Info:
+- Name: ${walletData?.name || 'N/A'}
+- Email: ${walletData?.email || 'N/A'}
+- Address: ${walletData?.address || 'N/A'}
+- Phone: ${walletData?.phone || 'N/A'}
+- Credit: €${credit.toFixed(2)}
+- Past Orders:
+${ordersText || 'No orders yet.'}
+`.trim()
+
+  // Build dynamic prompt with context
+  const prompt = ChatPromptTemplate.fromMessages([
+    ['system', `You are a helpful assistant that helps users order groceries.\nHere is the user context:\n${walletContext}`],
+    ['human', 'User message: {input}\nRespond helpfully. If they are looking for products, say "PRODUCT_SEARCH" on a new line before your message.'],
+  ])
+
+  const chain = RunnableSequence.from([
+    prompt,
+    new ChatOpenAI({
+      modelName: 'gpt-4o-mini',
+      temperature: 0.2,
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    })
+  ])
+
+  const result = await chain.invoke({ input: message })
+
+  const fullText = typeof result.content === 'string' ? result.content.trim() : ''
+  const isSearch = fullText.startsWith('PRODUCT_SEARCH')
+
+  let replyText = fullText
   let products: any[] = []
-  try {
-    products = await $fetch('/api/findProduct', {
-      method: 'POST',
-      body: {
-        chatUUID,
-        messages,
-      },
-    })
-  } catch (err) {
-    console.error('Failed to fetch products from findProduct:', err)
+
+  if (isSearch) {
+    replyText = fullText.replace('PRODUCT_SEARCH', '').trim()
+
+    try {
+      const toolResponse = await findProductTool.invoke(JSON.stringify({
+        userMessage: message,
+      }))
+
+      const parsed = JSON.parse(toolResponse)
+      if (Array.isArray(parsed)) {
+        products = parsed
+      }
+    } catch (err) {
+      console.error('Error calling findProductTool:', err)
+    }
   }
 
-  // 3) Return both assistant text and product cards
-  const response: any[] = [
-    {
-      type: 'markdown',
-      content: replyText,
-    },
-    ...(Array.isArray(products) ? products : [])
+  return [
+    { type: 'markdown', content: replyText },
+    ...(Array.isArray(products) ? products : []),
   ]
-
-  return response
 })

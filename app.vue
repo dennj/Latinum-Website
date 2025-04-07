@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import linkedinIcon from '~/assets/linkedin.svg';
 import whatsappIcon from '~/assets/whatsapp.svg';
-import Subscribe from '@/components/Subscribe.vue';
 const user = useSupabaseUser()
 
 useHead({
@@ -17,8 +16,6 @@ useHead({
     lang: 'en',
   },
 });
-
-import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const navLinks = router.options.routes
@@ -93,5 +90,4 @@ const navLinks = router.options.routes
       </div>
     </footer>
   </div>
-  <Subscribe />
 </template>

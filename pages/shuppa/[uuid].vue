@@ -69,14 +69,6 @@ const scrollToBottom = () => {
   })
 }
 
-function debounce(fn, delay) {
-  let timeout
-  return (...args) => {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => fn(...args), delay)
-  }
-}
-
 const sendMessage = async () => {
   const messageText = userInput.value.trim()
   if (!messageText) return
@@ -96,7 +88,7 @@ const sendMessage = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ Message: messageText, chatUUID: 'abc123' }),
+      body: JSON.stringify({ Message: messageText, wallet: useRoute().params.uuid}),
     })
 
     const data = await response.json()
