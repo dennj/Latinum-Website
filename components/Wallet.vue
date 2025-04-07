@@ -30,35 +30,37 @@
         <div>€{{ wallet.credits }}</div>
       </div>
 
-      <!-- Orders Section (Completed Orders) -->
-      <div v-if="completedOrders.length">
-        <div class="font-medium mt-4 mb-2">Completed Orders</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div v-for="(item, index) in completedOrders" :key="index" class="bg-gray-200 shadow-sm p-4 rounded-md">
-            <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
-            <div class="font-semibold text-sm">{{ item.title }}</div>
-            <div class="text-xs">€{{ item.total }}</div>
+      <ClientOnly>
+        <!-- Orders Section (Completed Orders) -->
+        <div v-if="completedOrders.length">
+          <div class="font-medium mt-4 mb-2">Completed Orders</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div v-for="(item, index) in completedOrders" :key="index" class="bg-gray-200 shadow-sm p-4 rounded-md">
+              <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
+              <div class="font-semibold text-sm">{{ item.title }}</div>
+              <div class="text-xs">€{{ item.price }}</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div v-else class="text-xs text-gray-400">No completed orders yet</div>
+        <div v-else class="text-xs text-gray-400">No completed orders yet</div>
 
-      <!-- Cart Items Section (Unpaid Items in Cart) -->
-      <div v-if="cartItems.length">
-        <div class="font-medium mt-4 mb-2">Current Cart</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div v-for="(item, index) in cartItems" :key="index" class="bg-white shadow-sm p-4 rounded-md">
-            <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
-            <div class="font-semibold text-sm">{{ item.title }}</div>
-            <div class="text-xs">€{{ item.total }}</div>
+        <!-- Cart Items Section (Unpaid Items in Cart) -->
+        <div v-if="cartItems.length">
+          <div class="font-medium mt-4 mb-2">Current Cart</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div v-for="(item, index) in cartItems" :key="index" class="bg-white shadow-sm p-4 rounded-md">
+              <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
+              <div class="font-semibold text-sm">{{ item.title }}</div>
+              <div class="text-xs">€{{ item.price }}</div>
+            </div>
           </div>
+          <button @click="handlePayment"
+            class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-700 transition">
+            Pay
+          </button>
         </div>
-        <button @click="handlePayment"
-          class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-700 transition">
-          Pay
-        </button>
-      </div>
-      <div v-else class="text-xs text-gray-400">Your cart is empty</div>
+        <div v-else class="text-xs text-gray-400">Your cart is empty</div>
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -142,7 +144,6 @@ onMounted(async () => {
       price: order.price / 100,
       paid: order.paid,
       image: order.image,
-      total: order.price / 100,  // Convert to euros
     })),
   }
 
@@ -171,7 +172,6 @@ onMounted(async () => {
           id: newOrder.id,
           title: newOrder.title,
           price: newOrder.price / 100,  // Convert price to euros
-          total: newOrder.price / 100,  // Convert to euros
           image: newOrder.image,
         })
       } else {
@@ -179,7 +179,6 @@ onMounted(async () => {
           id: newOrder.id,
           title: newOrder.title,
           price: newOrder.price / 100,  // Convert price to euros
-          total: newOrder.price / 100,  // Convert to euros
           image: newOrder.image,
         })
       }
