@@ -29,7 +29,7 @@
               <div class="text-sm font-semibold leading-tight">
                 {{ message.name }}
               </div>
-              <div class="text-xs text-blue-500 mt-1">{{ message.price }}</div>
+              <div class="text-xs text-blue-500 mt-1">€{{ message.price }}</div>
             </div>
           </div>
         </template>

@@ -12,7 +12,7 @@ interface Product {
   product_id: number
   product_name: string
   thumb_image: string
-  discounted_price: number
+  full_price: number
 }
 
 interface CategoryDetail {
@@ -97,10 +97,10 @@ export const findProductTool = new DynamicTool({
         .filter(p => prodIDs.includes(p.product_id))
         .map(p => ({
           type: 'product',
+          product_id: p.product_id,
           image: p.thumb_image,
           name: p.product_name,
-          description: '',
-          price: `€${p.discounted_price.toFixed(2)}`
+          price: p.full_price
         }))
 
       return JSON.stringify(selected)
