@@ -4,61 +4,71 @@
       Wallet
     </div>
     <div class="p-4 flex-1 overflow-y-auto space-y-4 text-sm text-gray-800">
-      <!-- Your Wallet Info -->
+      <!-- Wallet Info Section -->
       <div>
         <div class="font-medium">Name:</div>
-        <input v-model="wallet.name" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter name" />
+        <input v-model="wallet.name" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter name" />
       </div>
-
       <div>
         <div class="font-medium">Address:</div>
-        <input v-model="wallet.address" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter address" />
+        <input v-model="wallet.address" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter address" />
       </div>
       <div>
         <div class="font-medium">Email:</div>
-        <input v-model="wallet.email" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter email" />
+        <input v-model="wallet.email" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter email" />
       </div>
       <div>
         <div class="font-medium">Phone:</div>
-        <input v-model="wallet.phone" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter phone" />
+        <input v-model="wallet.phone" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter phone" />
       </div>
       <div>
         <div class="font-medium">Credits:</div>
-        <div>€{{ wallet.credits.toFixed(2) }}</div>
+        <div>€{{ wallet.credits }}</div>
       </div>
 
+      <!-- Orders Section (Completed Orders) -->
       <div>
-        <div class="font-medium mt-4 mb-2">Receipts</div>
-        <div v-if="wallet.orders.length">
-          <div v-for="(order, index) in wallet.orders" :key="index" class="border border-gray-200 rounded-md p-3 mb-3">
+        <div class="font-medium mt-4 mb-2">Completed Orders</div>
+        <div v-if="completedOrders.length">
+          <div v-for="(order, index) in completedOrders" :key="index" class="border border-gray-200 rounded-md p-3 mb-3">
             <div class="font-semibold text-sm mb-1">Order #{{ index + 1 }}</div>
             <ul class="space-y-1">
               <li v-for="(item, i) in order.items" :key="i" class="flex justify-between text-xs">
                 <span>{{ item.name }} (x{{ item.quantity }})</span>
-                <span>€{{ item.total.toFixed(2) }}</span>
+                <span>€{{ item.total }}</span>
               </li>
             </ul>
           </div>
         </div>
-        <div v-else class="text-xs text-gray-400">No orders yet</div>
+        <div v-else class="text-xs text-gray-400">No completed orders yet</div>
       </div>
 
-      <div v-if="showAlert" class="alert alert-success mt-4">
-        <span>{{ alertMessage }}</span>
+      <!-- Cart Items Section (Unpaid Items in Cart) -->
+      <div>
+        <div class="font-medium mt-4 mb-2">Current Cart</div>
+        <div v-if="cartItems.length">
+          <div v-for="(item, index) in cartItems" :key="index" class="border border-gray-200 rounded-md p-3 mb-3">
+            <div class="font-semibold text-sm mb-1">Cart Item #{{ index + 1 }}</div>
+            <ul class="space-y-1">
+              <li class="flex justify-between text-xs">
+                <span>{{ item.name }} (x{{ item.quantity }})</span>
+                <span>€{{ item.total }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div v-else class="text-xs text-gray-400">Your cart is empty</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+// Wallet and cart state
 const route = useRoute()
 const wallet = ref(null)
-const showAlert = ref(false)
-const alertMessage = ref('')
+const cartItems = ref([]) // For items in the cart (unpaid)
+const completedOrders = ref([]) // For completed orders (paid)
 
 function debounce(fn, delay) {
   let timeout
@@ -89,12 +99,11 @@ const saveWallet = async () => {
   console.log('Wallet updated successfully!')
 }
 
-// Listen for changes to the wallet table in real-time
 onMounted(async () => {
-  const supabase = useSupabaseClient()
   const uuid = route.params.uuid
+  const supabase = useSupabaseClient()
 
-  // Fetch the initial wallet data
+  // Fetch wallet and order details
   const { data: walletData, error } = await supabase
     .from('wallet')
     .select(`
@@ -102,7 +111,8 @@ onMounted(async () => {
       orders:orders (
         id,
         title,
-        price
+        price,
+        paid
       )
     `)
     .eq('uuid', uuid)
@@ -128,35 +138,65 @@ onMounted(async () => {
       items: [
         { name: order.title, quantity: 1, total: order.price / 100 },
       ],
+      paid: order.paid,
     })),
   }
+
+  // Separate orders into paid and cart items
+  completedOrders.value = wallet.value.orders.filter(order => order.paid)
+  cartItems.value = wallet.value.orders.filter(order => !order.paid)
+
+  // Subscribe to wallet changes
+  const walletSubscription = supabase
+    .from(`wallet:uuid=eq.${uuid}`)
+    .on('UPDATE', payload => {
+      console.log('Wallet updated:', payload)
+      wallet.value = payload.new
+    })
+    .subscribe()
+
+  // Subscribe to orders changes
+  const ordersSubscription = supabase
+    .from(`orders:wallet=eq.${uuid}`)
+    .on('INSERT', payload => {
+      console.log('New order added:', payload)
+      const newOrder = payload.new
+      if (!newOrder.paid) {
+        cartItems.value.push(newOrder)
+      } else {
+        completedOrders.value.push(newOrder)
+      }
+    })
+    .on('UPDATE', payload => {
+      console.log('Order updated:', payload)
+      const updatedOrder = payload.new
+      if (updatedOrder.paid) {
+        const index = cartItems.value.findIndex(item => item.id === updatedOrder.id)
+        if (index !== -1) {
+          cartItems.value.splice(index, 1)
+          completedOrders.value.push(updatedOrder)
+        }
+      } else {
+        const index = completedOrders.value.findIndex(item => item.id === updatedOrder.id)
+        if (index !== -1) {
+          completedOrders.value.splice(index, 1)
+          cartItems.value.push(updatedOrder)
+        }
+      }
+    })
+    .subscribe()
+
+  // Cleanup the subscriptions when the component is unmounted
+  onBeforeUnmount(() => {
+    walletSubscription.unsubscribe()
+    ordersSubscription.unsubscribe()
+  })
 
   if (wallet.value) {
     watch(() => wallet.value.name, debounce(() => saveWallet(), 300))
     watch(() => wallet.value.address, debounce(() => saveWallet(), 300))
     watch(() => wallet.value.email, debounce(() => saveWallet(), 300))
     watch(() => wallet.value.phone, debounce(() => saveWallet(), 300))
-  }
-
-  // Realtime subscription for wallet updates
-  const { data, error: subscriptionError } = await supabase
-    .from(`wallet:id=eq.${uuid}`)
-    .on('*', payload => {
-      console.log('Realtime update:', payload)
-
-      // When the wallet is updated, show an alert
-      showAlert.value = true
-      alertMessage.value = '✅ Your wallet has been updated!'
-
-      // Hide the alert after 3 seconds
-      setTimeout(() => {
-        showAlert.value = false
-      }, 3000)
-    })
-    .subscribe()
-
-  if (subscriptionError) {
-    console.error('Error subscribing to wallet updates:', subscriptionError)
   }
 })
 </script>

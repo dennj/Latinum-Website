@@ -16,30 +16,25 @@ export async function buyProducts(walletUUID: string, productIDs: number[], even
     // Verify we have a valid client
     if (!client) return '❌ Failed to initialize Supabase client.'
 
-    // Fetch existing cart first
-    const { data: walletData, error: fetchError } = await client
-      .from('wallet')
-      .select('cart')
-      .eq('uuid', walletUUID)
-      .single()
+    // Add the products to the 'orders' table with 'paid: false' indicating that they are in the cart
+    const insertOrders = productIDs.map(productID => ({
+      wallet: walletUUID,
+      product_id: productID,
+      paid: false, // Indicate that the item is in the cart (not paid)
+      title: `Product ${productID}`, // You can fetch the actual title or name from the products table if necessary
+      price: 0, // Set price to 0, you might need to update this with the actual price
+      image: null, // Optional, add an image if necessary
+    }))
 
-    if (fetchError) return `❌ Failed to fetch wallet: ${fetchError.message}`
+    const { error: insertError } = await client
+      .from('orders')
+      .upsert(insertOrders)
 
-    const existingCart: number[] = walletData?.cart || []
-    const updatedCart = Array.from(new Set([...existingCart, ...productIDs]))
-
-    const { error: upsertError } = await client
-      .from('wallet')
-      .upsert({
-        uuid: walletUUID,
-        cart: updatedCart,
-      })
-
-    if (upsertError) {
-      return `❌ Failed to update cart: ${upsertError.message}`
+    if (insertError) {
+      return `❌ Failed to insert into orders table: ${insertError.message}`
     }
 
-    return `✅ Added ${productIDs.length} product(s) to your cart.`
+    return `✅ Added ${productIDs.length} product(s) to your cart (orders).`
   } catch (err: any) {
     console.error('Error in buyProducts:', err)
     return `❌ Error in buyProducts: ${err.message}`
