@@ -1,4 +1,5 @@
 // server/tools/findProductTool.ts
+
 import { DynamicTool } from 'langchain/tools'
 import { ChatOpenAI } from '@langchain/openai'
 
@@ -44,23 +45,23 @@ const fetchData = async (url: string): Promise<any> => {
 
 export const findProductTool = new DynamicTool({
   name: 'find_relevant_products',
-  description: 'Find relevant grocery products based on user message',
+  description: 'Find relevant grocery products based on user message. Input must be a plain text query like "pasta", "milk and bread", etc.',
   func: async (input: string) => {
     try {
-      const { userMessage } = JSON.parse(input)
+      const userMessage = input.trim()
 
       const messages = [
         {
           role: 'system',
-          content: "You are helping categorize and select products based on the user's message."
+          content: "You are helping categorize and select products based on the user's message.",
         },
         {
           role: 'user',
-          content: userMessage
-        }
+          content: "User is looking for: " + userMessage,
+        },
       ]
 
-      // 1) Get category list
+      // Step 1: Get categories
       const catData = await fetchData('https://ag35x.myshuppa.com/v1/menu/1189545')
       const categoryList = catData.categories
         .map((c: any) => `${c.id} ${c.name}`)
@@ -68,25 +69,26 @@ export const findProductTool = new DynamicTool({
 
       messages.push({
         role: 'system',
-        content: `Is the user looking for a product in one or more of these categories?\n${categoryList}\nIf yes, print the numbers as [ID1, ID2, ...] otherwise print [N].`
+        content: `Is the user looking for a product in one or more of these categories?\n${categoryList}\nIf yes, print the numbers as [ID1, ID2, ...] otherwise print [N].`,
       })
 
       const catResponse = await openai.invoke(messages)
       const catIDs = parseTargetIDs(String(catResponse.content || ''))
       if (!catIDs.length) return '[]'
 
-      // 2) Fetch all products in those categories
+      // Step 2: Fetch products in those categories
       const allProducts: Product[] = []
+
       for (const id of catIDs) {
         const detail: CategoryDetail = await fetchData(`https://ag35x.myshuppa.com/v1/menu/1189545/${id}`)
-        detail.subcategories.forEach(sub => {
+        for (const sub of detail.subcategories) {
           allProducts.push(...sub.products)
-        })
+        }
       }
 
       messages.push({
         role: 'system',
-        content: `${JSON.stringify(allProducts)}\nReturn the list of relevant products in the format: [product_id, product_id, ...]. Print only the IDs.`
+        content: `${JSON.stringify(allProducts)}\nReturn maximum 6 relevant products in the format: [product_id, product_id, ...]. Print only the IDs.`,
       })
 
       const prodResponse = await openai.invoke(messages)
@@ -100,11 +102,12 @@ export const findProductTool = new DynamicTool({
           product_id: p.product_id,
           image: p.thumb_image,
           name: p.product_name,
-          price: p.full_price
+          price: p.full_price,
         }))
 
       return JSON.stringify(selected)
     } catch (err: any) {
+      console.error("findProductTool failed:", err)
       return `Error in findProductTool: ${err.message}`
     }
   },
