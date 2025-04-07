@@ -3,7 +3,7 @@ import { ChatOpenAI } from '@langchain/openai'
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { findProductTool } from '@/server/tools/findProductTool'
-import { buyProducts } from '@/server/tools/buyProductTool'  // Import the direct function
+import { buyProducts } from '@/server/tools/buyProductTool'
 import { serverSupabaseClient } from '#supabase/server'
 import { SupabaseChatMessageHistory } from '@/server/memory/SupabaseChatMessageHistory'
 
@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   // Wallet & Orders
   const { data: walletData, error } = await client
     .from('wallet')
-    .select(`name, email, address, phone, credit, orders:orders(id, title, price, created_at)`)
+    .select(`name, email, address, phone, credit, orders:orders(id, title, price, created_at, paid)`)
     .eq('uuid', walletUUID)
     .single()
 
@@ -92,9 +92,27 @@ ${ordersText || 'No orders yet.'}
     try {
       const toolResponse = await findProductTool.invoke(message)
       const parsed = JSON.parse(toolResponse)
+  
       if (Array.isArray(parsed)) {
         products = parsed
-        followupContent = parsed.map(p =>
+  
+        // 🧠 Save to product table via upsert
+        const upsertPayload = products.map(p => ({
+          id: p.product_id,
+          name: p.name,
+          image: p.image,
+          price: Math.round(100*p.price),
+        }))
+  
+        const { error: upsertError } = await client
+          .from('product')
+          .upsert(upsertPayload)
+  
+        if (upsertError) {
+          console.error('⚠️ Failed to upsert products:', upsertError)
+        }
+  
+        followupContent = products.map(p =>
           `Product: ${p.name}\nID: ${p.product_id}\nPrice: €${p.price.toFixed(2)}\n\n`
         ).join('')
       }

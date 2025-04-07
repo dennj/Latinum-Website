@@ -7,19 +7,23 @@
       <!-- Wallet Info Section -->
       <div>
         <div class="font-medium">Name:</div>
-        <input v-model="wallet.name" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter name" />
+        <input v-model="wallet.name" @blur="saveWallet"
+          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter name" />
       </div>
       <div>
         <div class="font-medium">Address:</div>
-        <input v-model="wallet.address" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter address" />
+        <input v-model="wallet.address" @blur="saveWallet"
+          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter address" />
       </div>
       <div>
         <div class="font-medium">Email:</div>
-        <input v-model="wallet.email" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter email" />
+        <input v-model="wallet.email" @blur="saveWallet"
+          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter email" />
       </div>
       <div>
         <div class="font-medium">Phone:</div>
-        <input v-model="wallet.phone" @blur="saveWallet" class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter phone" />
+        <input v-model="wallet.phone" @blur="saveWallet"
+          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter phone" />
       </div>
       <div>
         <div class="font-medium">Credits:</div>
@@ -27,38 +31,34 @@
       </div>
 
       <!-- Orders Section (Completed Orders) -->
-      <div>
+      <div v-if="completedOrders.length">
         <div class="font-medium mt-4 mb-2">Completed Orders</div>
-        <div v-if="completedOrders.length">
-          <div v-for="(order, index) in completedOrders" :key="index" class="border border-gray-200 rounded-md p-3 mb-3">
-            <div class="font-semibold text-sm mb-1">Order #{{ index + 1 }}</div>
-            <ul class="space-y-1">
-              <li v-for="(item, i) in order.items" :key="i" class="flex justify-between text-xs">
-                <span>{{ item.name }} (x{{ item.quantity }})</span>
-                <span>€{{ item.total }}</span>
-              </li>
-            </ul>
+        <div class="grid grid-cols-2 gap-2">
+          <div v-for="(item, index) in completedOrders" :key="index" class="bg-gray-200 shadow-sm p-4 rounded-md">
+            <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
+            <div class="font-semibold text-sm">{{ item.title }}</div>
+            <div class="text-xs">€{{ item.total }}</div>
           </div>
         </div>
-        <div v-else class="text-xs text-gray-400">No completed orders yet</div>
       </div>
+      <div v-else class="text-xs text-gray-400">No completed orders yet</div>
 
       <!-- Cart Items Section (Unpaid Items in Cart) -->
-      <div>
+      <div v-if="cartItems.length">
         <div class="font-medium mt-4 mb-2">Current Cart</div>
-        <div v-if="cartItems.length">
-          <div v-for="(item, index) in cartItems" :key="index" class="border border-gray-200 rounded-md p-3 mb-3">
-            <div class="font-semibold text-sm mb-1">Cart Item #{{ index + 1 }}</div>
-            <ul class="space-y-1">
-              <li class="flex justify-between text-xs">
-                <span>{{ item.name }} (x{{ item.quantity }})</span>
-                <span>€{{ item.total }}</span>
-              </li>
-            </ul>
+        <div class="grid grid-cols-2 gap-2">
+          <div v-for="(item, index) in cartItems" :key="index" class="bg-white shadow-sm p-4 rounded-md">
+            <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
+            <div class="font-semibold text-sm">{{ item.title }}</div>
+            <div class="text-xs">€{{ item.total }}</div>
           </div>
         </div>
-        <div v-else class="text-xs text-gray-400">Your cart is empty</div>
+        <button @click="handlePayment"
+          class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-700 transition">
+          Pay
+        </button>
       </div>
+      <div v-else class="text-xs text-gray-400">Your cart is empty</div>
     </div>
   </div>
 </template>
@@ -112,7 +112,8 @@ onMounted(async () => {
         id,
         title,
         price,
-        paid
+        paid,
+        image
       )
     `)
     .eq('uuid', uuid)
@@ -131,14 +132,17 @@ onMounted(async () => {
     return
   }
 
+  // Correctly map the wallet data to the orders
   wallet.value = {
     ...walletData,
     credits: (walletData.credit ?? 0) / 100,
     orders: (walletData.orders || []).map(order => ({
-      items: [
-        { name: order.title, quantity: 1, total: order.price / 100 },
-      ],
+      id: order.id,
+      title: order.title,
+      price: order.price / 100,
       paid: order.paid,
+      image: order.image,
+      total: order.price / 100,  // Convert to euros
     })),
   }
 
@@ -161,22 +165,37 @@ onMounted(async () => {
     .on('INSERT', payload => {
       console.log('New order added:', payload)
       const newOrder = payload.new
+      // Check if it's paid or not, and add to the correct array
       if (!newOrder.paid) {
-        cartItems.value.push(newOrder)
+        cartItems.value.push({
+          id: newOrder.id,
+          title: newOrder.title,
+          price: newOrder.price / 100,  // Convert price to euros
+          total: newOrder.price / 100,  // Convert to euros
+          image: newOrder.image,
+        })
       } else {
-        completedOrders.value.push(newOrder)
+        completedOrders.value.push({
+          id: newOrder.id,
+          title: newOrder.title,
+          price: newOrder.price / 100,  // Convert price to euros
+          total: newOrder.price / 100,  // Convert to euros
+          image: newOrder.image,
+        })
       }
     })
     .on('UPDATE', payload => {
       console.log('Order updated:', payload)
       const updatedOrder = payload.new
       if (updatedOrder.paid) {
+        // Move from cart to completed orders
         const index = cartItems.value.findIndex(item => item.id === updatedOrder.id)
         if (index !== -1) {
           cartItems.value.splice(index, 1)
           completedOrders.value.push(updatedOrder)
         }
       } else {
+        // Move from completed to cart
         const index = completedOrders.value.findIndex(item => item.id === updatedOrder.id)
         if (index !== -1) {
           completedOrders.value.splice(index, 1)
@@ -192,6 +211,7 @@ onMounted(async () => {
     ordersSubscription.unsubscribe()
   })
 
+  // Add watchers to save wallet on change
   if (wallet.value) {
     watch(() => wallet.value.name, debounce(() => saveWallet(), 300))
     watch(() => wallet.value.address, debounce(() => saveWallet(), 300))
@@ -199,4 +219,44 @@ onMounted(async () => {
     watch(() => wallet.value.phone, debounce(() => saveWallet(), 300))
   }
 })
+
+const handlePayment = async () => {
+  const supabase = useSupabaseClient()
+  const uuid = route.params.uuid
+
+  const totalCents = cartItems.value.reduce((sum, item) => sum + item.price * 100, 0)
+  const walletCredits = (wallet.value.credit ?? 0)
+
+  if (walletCredits < totalCents) {
+    alert("❌ Not enough credit!")
+    return
+  }
+
+  // 1. Deduct credit from wallet
+  const { error: creditError } = await supabase
+    .from('wallet')
+    .update({ credit: walletCredits - totalCents })
+    .eq('uuid', uuid)
+
+  if (creditError) {
+    alert("❌ Failed to update credit")
+    console.error(creditError)
+    return
+  }
+
+  // 2. Mark cart orders as paid
+  const cartIds = cartItems.value.map(item => item.id)
+  const { error: payError } = await supabase
+    .from('orders')
+    .update({ paid: true })
+    .in('id', cartIds)
+
+  if (payError) {
+    alert("❌ Failed to mark orders as paid")
+    console.error(payError)
+    return
+  }
+
+  console.log("✅ Payment complete.")
+}
 </script>
