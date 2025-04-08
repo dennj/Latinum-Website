@@ -21,7 +21,8 @@
         <div>
           <div class="font-medium mb-2 text-blue-600">Current Cart</div>
           <div v-if="cartItems.length" class="grid grid-cols-2 gap-3 mb-3">
-            <ProductCard v-for="(item, index) in cartItems" :key="index" :item="item" />
+            <ProductCard v-for="(item, index) in cartItems" :key="index" :item="item" :removable="true"
+              :onRemove="removeFromCart" />
           </div>
           <div v-else class="text-xs text-gray-400">Your cart is empty</div>
 
@@ -216,5 +217,19 @@ const handlePayment = async () => {
   }
 
   console.log("✅ Payment complete.")
+}
+
+const removeFromCart = async (orderId) => {
+  const supabase = useSupabaseClient()
+
+  const { error } = await supabase.from('orders').delete().eq('id', orderId)
+
+  if (error) {
+    alert('❌ Failed to remove item')
+    console.error(error)
+    return
+  }
+
+  cartItems.value = cartItems.value.filter(item => item.id !== orderId)
 }
 </script>

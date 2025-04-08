@@ -1,5 +1,11 @@
 <template>
-    <div class="border border-gray-200 rounded-md p-2 text-center space-y-2">
+    <div class="relative border border-gray-200 rounded-md p-2 text-center space-y-2">
+        <!-- ❌ Remove button (only if removable) -->
+        <button v-if="removable" @click="() => onRemove?.(item.id)"
+            class="absolute top-1 right-1 text-red-500 hover:text-red-700 text-xs">
+            ❌
+        </button>
+
         <img v-if="item.image" :src="item.image" alt="Product image" class="w-full h-20 object-cover rounded" />
         <div class="text-sm font-medium">{{ item.title }}</div>
         <div class="text-xs text-gray-600">€{{ item.price }}</div>
@@ -10,7 +16,11 @@
 </template>
 
 <script setup>
-const props = defineProps({ item: Object })
+const props = defineProps({
+    item: Object,
+    removable: Boolean,
+    onRemove: Function,
+})
 
 const formattedDate = computed(() => {
     if (!props.item.created_at) return ''
