@@ -1,65 +1,44 @@
 <template>
-  <div v-if="wallet" class="w-full max-w-sm h-[80vh] bg-gray-100 rounded-2xl flex flex-col overflow-hidden mr-4">
+  <div v-if="wallet"
+    class="w-full max-w-sm h-[80vh] bg-white rounded-2xl border border-gray-300 flex flex-col overflow-hidden mr-4">
     <div class="py-4 px-4 border-b border-gray-200 text-lg font-semibold text-blue-700">
       Wallet
     </div>
-    <div class="p-4 flex-1 overflow-y-auto space-y-4 text-sm text-gray-800">
+
+    <div class="p-4 flex-1 overflow-y-auto space-y-6 text-sm text-gray-800">
       <!-- Wallet Info Section -->
-      <div>
-        <div class="font-medium">Name:</div>
-        <input v-model="wallet.name" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter name" />
-      </div>
-      <div>
-        <div class="font-medium">Address:</div>
-        <input v-model="wallet.address" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter address" />
-      </div>
-      <div>
-        <div class="font-medium">Email:</div>
-        <input v-model="wallet.email" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter email" />
-      </div>
-      <div>
-        <div class="font-medium">Phone:</div>
-        <input v-model="wallet.phone" @blur="saveWallet"
-          class="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-blue-100" placeholder="Enter phone" />
-      </div>
-      <div>
+      <div class="space-y-2">
+        <FormField label="Name" v-model="wallet.name" />
+        <FormField label="Address" v-model="wallet.address" />
+        <FormField label="Email" v-model="wallet.email" />
+        <FormField label="Phone" v-model="wallet.phone" />
         <div class="font-medium">Credits:</div>
         <div>€{{ wallet.credits }}</div>
       </div>
 
       <ClientOnly>
-        <!-- Orders Section (Completed Orders) -->
-        <div v-if="completedOrders.length">
-          <div class="font-medium mt-4 mb-2">Completed Orders</div>
-          <div class="grid grid-cols-2 gap-2">
-            <div v-for="(item, index) in completedOrders" :key="index" class="bg-gray-200 shadow-sm p-4 rounded-md">
-              <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
-              <div class="font-semibold text-sm">{{ item.title }}</div>
-              <div class="text-xs">€{{ item.price }}</div>
-            </div>
+        <!-- Cart Items -->
+        <div>
+          <div class="font-medium mb-2 text-blue-600">Current Cart</div>
+          <div v-if="cartItems.length" class="grid grid-cols-2 gap-3 mb-3">
+            <ProductCard v-for="(item, index) in cartItems" :key="index" :item="item" />
           </div>
-        </div>
-        <div v-else class="text-xs text-gray-400">No completed orders yet</div>
+          <div v-else class="text-xs text-gray-400">Your cart is empty</div>
 
-        <!-- Cart Items Section (Unpaid Items in Cart) -->
-        <div v-if="cartItems.length">
-          <div class="font-medium mt-4 mb-2">Current Cart</div>
-          <div class="grid grid-cols-2 gap-2">
-            <div v-for="(item, index) in cartItems" :key="index" class="bg-white shadow-sm p-4 rounded-md">
-              <img v-if="item.image" :src="item.image" alt="Product image" class="w-16 h-16 object-cover mb-2" />
-              <div class="font-semibold text-sm">{{ item.title }}</div>
-              <div class="text-xs">€{{ item.price }}</div>
-            </div>
-          </div>
-          <button @click="handlePayment"
-            class="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded hover:bg-blue-700 transition">
+          <button v-if="cartItems.length" @click="handlePayment"
+            class="w-full bg-blue-600 text-white text-sm font-semibold py-2 rounded-md hover:bg-blue-700 transition">
             Pay
           </button>
         </div>
-        <div v-else class="text-xs text-gray-400">Your cart is empty</div>
+
+        <!-- Completed Orders -->
+        <div>
+          <div class="font-medium mb-2 text-blue-600">Completed Orders</div>
+          <div v-if="completedOrders.length" class="grid grid-cols-2 gap-3">
+            <ProductCard v-for="(item, index) in completedOrders" :key="index" :item="item" />
+          </div>
+          <div v-else class="text-xs text-gray-400">No completed orders yet</div>
+        </div>
       </ClientOnly>
     </div>
   </div>
@@ -114,6 +93,7 @@ onMounted(async () => {
       *,
       orders:orders (
         id,
+        created_at,
         title,
         price,
         paid,
@@ -189,6 +169,7 @@ onBeforeUnmount(() => {
 function mapOrder(order) {
   return {
     id: order.id,
+    created_at: order.created_at,
     title: order.title,
     image: order.image,
     paid: order.paid,
