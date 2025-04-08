@@ -13,19 +13,16 @@
 
       <!-- Chat Area -->
       <div ref="chatContainer" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        <template v-for="(message, index) in messages" :key="index">
-          <!-- Markdown Message -->
-          <div v-if="message && message.type === 'markdown'" :class="[
+        <template v-for="(block, index) in groupedMessages" :key="index">
+          <!-- Markdown -->
+          <div v-if="block.type === 'markdown'" :class="[
             'max-w-xs p-3 rounded-xl whitespace-pre-line',
-            message.fromUser ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-200 text-gray-800'
-          ]" v-html="renderMarkdown(message.content)"></div>
-        </template>
+            block.fromUser ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-200 text-gray-800'
+          ]" v-html="renderMarkdown(block.content)"></div>
 
-
-        <!-- Product Message -->
-        <template v-for="(row, rowIndex) in productMessageRows" :key="'product-row-' + rowIndex">
-          <div class="grid grid-cols-2 gap-3">
-            <div v-for="(product, colIndex) in row" :key="'product-' + rowIndex + '-' + colIndex"
+          <!-- Product Group (2 per row) -->
+          <div v-else-if="block.type === 'product-group'" class="grid grid-cols-2 gap-3">
+            <div v-for="(product, i) in block.items" :key="'product-' + i"
               class="border border-gray-300 rounded-lg p-2 flex flex-col">
               <img :src="product.image" alt="Product image" class="w-full h-24 object-cover rounded-md mb-2" />
               <div class="text-sm font-semibold leading-tight">{{ product.name }}</div>
@@ -116,5 +113,34 @@ const productMessageRows = computed(() => {
     rows.push(productMessages.slice(i, i + 2))
   }
   return rows
+})
+
+const groupedMessages = computed(() => {
+  const result = []
+  const queue = []
+
+  for (const message of messages.value) {
+    if (message.type === 'product') {
+      queue.push(message)
+      if (queue.length === 2) {
+        result.push({ type: 'product-group', items: [...queue] })
+        queue.length = 0
+      }
+    } else {
+      // flush queue if only one product
+      if (queue.length) {
+        result.push({ type: 'product-group', items: [...queue] })
+        queue.length = 0
+      }
+      result.push(message)
+    }
+  }
+
+  // flush remaining one-product group
+  if (queue.length) {
+    result.push({ type: 'product-group', items: [...queue] })
+  }
+
+  return result
 })
 </script>
