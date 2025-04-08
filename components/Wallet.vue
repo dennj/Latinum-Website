@@ -101,12 +101,14 @@ const saveWallet = async () => {
   console.log('Wallet updated successfully!')
 }
 
+let ordersChannel, walletChannel
+
 onMounted(async () => {
   const uuid = route.params.uuid
   const supabase = useSupabaseClient()
 
-  // Fetch wallet and order details
-  const { data: walletData, error } = await supabase
+  // Fetch initial wallet data
+  const { data: walletData } = await supabase
     .from('wallet')
     .select(`
       *,
@@ -121,103 +123,79 @@ onMounted(async () => {
     .eq('uuid', uuid)
     .single()
 
-  if (error || !walletData) {
-    console.warn('Wallet not found, generating default empty wallet.')
-    wallet.value = {
-      name: '',
-      address: '',
-      email: '',
-      phone: '',
-      credits: 0,
-      orders: [],
-    }
-    return
-  }
+  if (!walletData) return
 
-  // Correctly map the wallet data to the orders
   wallet.value = {
     ...walletData,
     credits: (walletData.credit ?? 0) / 100,
-    orders: (walletData.orders || []).map(order => ({
-      id: order.id,
-      title: order.title,
-      price: order.price / 100,
-      paid: order.paid,
-      image: order.image,
-    })),
   }
 
-  // Separate orders into paid and cart items
-  completedOrders.value = wallet.value.orders.filter(order => order.paid)
-  cartItems.value = wallet.value.orders.filter(order => !order.paid)
+  const allOrders = walletData.orders || []
+  completedOrders.value = allOrders.filter(o => o.paid).map(mapOrder)
+  cartItems.value = allOrders.filter(o => !o.paid).map(mapOrder)
 
-  // Subscribe to wallet changes
-  const walletSubscription = supabase
-    .from(`wallet:uuid=eq.${uuid}`)
-    .on('UPDATE', payload => {
-      console.log('Wallet updated:', payload)
-      wallet.value = payload.new
-    })
-    .subscribe()
+  // 🧠 Subscribe to orders table
+  ordersChannel = supabase.channel('wallet-orders-realtime').on(
+    'postgres_changes',
+    {
+      event: '*',
+      schema: 'public',
+      table: 'orders',
+      filter: `wallet=eq.${uuid}`
+    },
+    payload => {
+      console.log('🔄 Realtime order update:', payload)
 
-  // Subscribe to orders changes
-  const ordersSubscription = supabase
-    .from(`orders:wallet=eq.${uuid}`)
-    .on('INSERT', payload => {
-      console.log('New order added:', payload)
-      const newOrder = payload.new
-      // Check if it's paid or not, and add to the correct array
-      if (!newOrder.paid) {
-        cartItems.value.push({
-          id: newOrder.id,
-          title: newOrder.title,
-          price: newOrder.price / 100,  // Convert price to euros
-          image: newOrder.image,
-        })
+      const order = mapOrder(payload.new)
+      const isPaid = order.paid
+
+      if (isPaid) {
+        cartItems.value = cartItems.value.filter(o => o.id !== order.id)
+        completedOrders.value = [...completedOrders.value.filter(o => o.id !== order.id), order]
       } else {
-        completedOrders.value.push({
-          id: newOrder.id,
-          title: newOrder.title,
-          price: newOrder.price / 100,  // Convert price to euros
-          image: newOrder.image,
-        })
+        completedOrders.value = completedOrders.value.filter(o => o.id !== order.id)
+        cartItems.value = [...cartItems.value.filter(o => o.id !== order.id), order]
       }
-    })
-    .on('UPDATE', payload => {
-      console.log('Order updated:', payload)
-      const updatedOrder = payload.new
-      if (updatedOrder.paid) {
-        // Move from cart to completed orders
-        const index = cartItems.value.findIndex(item => item.id === updatedOrder.id)
-        if (index !== -1) {
-          cartItems.value.splice(index, 1)
-          completedOrders.value.push(updatedOrder)
-        }
-      } else {
-        // Move from completed to cart
-        const index = completedOrders.value.findIndex(item => item.id === updatedOrder.id)
-        if (index !== -1) {
-          completedOrders.value.splice(index, 1)
-          cartItems.value.push(updatedOrder)
-        }
+    }
+  )
+
+  // 🧠 Subscribe to wallet changes (optional)
+  walletChannel = supabase.channel('wallet-info-realtime').on(
+    'postgres_changes',
+    {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'wallet',
+      filter: `uuid=eq.${uuid}`
+    },
+    payload => {
+      console.log('🔁 Wallet updated:', payload)
+      wallet.value = {
+        ...payload.new,
+        credits: (payload.new.credit ?? 0) / 100
       }
-    })
-    .subscribe()
+    }
+  )
 
-  // Cleanup the subscriptions when the component is unmounted
-  onBeforeUnmount(() => {
-    walletSubscription.unsubscribe()
-    ordersSubscription.unsubscribe()
-  })
-
-  // Add watchers to save wallet on change
-  if (wallet.value) {
-    watch(() => wallet.value.name, debounce(() => saveWallet(), 300))
-    watch(() => wallet.value.address, debounce(() => saveWallet(), 300))
-    watch(() => wallet.value.email, debounce(() => saveWallet(), 300))
-    watch(() => wallet.value.phone, debounce(() => saveWallet(), 300))
-  }
+  ordersChannel.subscribe()
+  walletChannel.subscribe()
 })
+
+onBeforeUnmount(() => {
+  supabase.removeChannel(ordersChannel)
+  supabase.removeChannel(walletChannel)
+})
+
+function mapOrder(order) {
+  return {
+    id: order.id,
+    title: order.title,
+    image: order.image,
+    paid: order.paid,
+    price: order.price / 100,
+  }
+}
+
 
 const handlePayment = async () => {
   const supabase = useSupabaseClient()
