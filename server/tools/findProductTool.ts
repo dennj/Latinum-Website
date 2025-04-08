@@ -88,7 +88,7 @@ export const findProductTool = new DynamicTool({
 
       messages.push({
         role: 'system',
-        content: `${JSON.stringify(allProducts)}\nReturn maximum 6 relevant products in the format: [product_id, product_id, ...]. Print only the IDs.`,
+        content: `${JSON.stringify(allProducts)}\nReturn maximum 6 (better only 1 when possible) relevant products in the format: [product_id, product_id, ...]. Print only the IDs.`,
       })
 
       const prodResponse = await openai.invoke(messages)

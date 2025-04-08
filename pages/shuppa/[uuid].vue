@@ -15,12 +15,10 @@
       <div ref="chatContainer" class="flex-1 overflow-y-auto px-4 py-3 space-y-4">
         <template v-for="(message, index) in messages" :key="index">
           <!-- Markdown Message -->
-          <div v-if="message.type === 'markdown'" :class="[
+          <div v-if="message && message.type === 'markdown'" :class="[
             'max-w-xs p-3 rounded-xl whitespace-pre-line',
             message.fromUser ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-200 text-gray-800'
-          ]">
-            <span>{{ message.content }}</span>
-          </div>
+          ]" v-html="renderMarkdown(message.content)"></div>
 
           <!-- Product Message -->
           <div v-else-if="message.type === 'product'" class="grid grid-cols-2 gap-3">
@@ -50,12 +48,13 @@
 </template>
 
 <script setup>
+import { marked } from 'marked'
 const route = useRoute()
 const userInput = ref('')
 const messages = ref([
   {
     type: 'markdown',
-    content: 'Welcome to Latinum Assistant! Would you like to order some groceries?',
+    content: 'Welcome to **Latinum** Assistant! Would you like to order some groceries?',
   },
 ])
 
@@ -88,7 +87,7 @@ const sendMessage = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ Message: messageText, wallet: useRoute().params.uuid}),
+      body: JSON.stringify({ Message: messageText, wallet: useRoute().params.uuid }),
     })
 
     const data = await response.json()
@@ -96,6 +95,15 @@ const sendMessage = async () => {
     scrollToBottom()
   } catch (err) {
     console.error('Failed to send message:', err)
+  }
+}
+
+const renderMarkdown = (text) => {
+  try {
+    return marked.parse(text || '')
+  } catch (err) {
+    console.warn('Failed to render markdown:', err)
+    return text
   }
 }
 </script>

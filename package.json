@@ -24,6 +24,7 @@
     "@vueuse/nuxt": "^13.0.0",
     "daisyui": "^4.12.24",
     "langchain": "^0.3.19",
+    "marked": "^15.0.8",
     "nuxt": "^3.16.2",
     "nuxt-anchorscroll": "^1.0.5",
     "nuxt-gtag": "^3.0.2",
