@@ -42,6 +42,11 @@
           </svg>
         </button>
       </div>
+      <ClientOnly>
+        <button v-if="recognition" @click="recognition.start()" class="ml-2 text-blue-600">
+          🎤 Speak
+        </button>
+      </ClientOnly>
     </div>
   </div>
 </template>
@@ -143,4 +148,26 @@ const groupedMessages = computed(() => {
 
   return result
 })
+
+
+let recognition
+
+if (process.client) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  recognition = new SpeechRecognition()
+  recognition.lang = 'en-US'
+  recognition.interimResults = false
+  recognition.maxAlternatives = 1
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript
+    userInput.value = transcript
+    sendMessage()
+  }
+
+  recognition.onerror = (event) => {
+    console.error('🎙 Speech error:', event.error)
+    alert('Voice recognition failed. Check microphone permissions.')
+  }
+}
 </script>
