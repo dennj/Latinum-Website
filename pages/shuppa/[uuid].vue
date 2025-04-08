@@ -19,15 +19,17 @@
             'max-w-xs p-3 rounded-xl whitespace-pre-line',
             message.fromUser ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-200 text-gray-800'
           ]" v-html="renderMarkdown(message.content)"></div>
+        </template>
 
-          <!-- Product Message -->
-          <div v-else-if="message.type === 'product'" class="grid grid-cols-2 gap-3">
-            <div class="border border-gray-300 rounded-lg p-2 flex flex-col">
-              <img :src="message.image" alt="Product image" class="w-full h-24 object-cover rounded-md mb-2" />
-              <div class="text-sm font-semibold leading-tight">
-                {{ message.name }}
-              </div>
-              <div class="text-xs text-blue-500 mt-1">€{{ message.price }}</div>
+
+        <!-- Product Message -->
+        <template v-for="(row, rowIndex) in productMessageRows" :key="'product-row-' + rowIndex">
+          <div class="grid grid-cols-2 gap-3">
+            <div v-for="(product, colIndex) in row" :key="'product-' + rowIndex + '-' + colIndex"
+              class="border border-gray-300 rounded-lg p-2 flex flex-col">
+              <img :src="product.image" alt="Product image" class="w-full h-24 object-cover rounded-md mb-2" />
+              <div class="text-sm font-semibold leading-tight">{{ product.name }}</div>
+              <div class="text-xs text-blue-500 mt-1">€{{ product.price }}</div>
             </div>
           </div>
         </template>
@@ -106,4 +108,13 @@ const renderMarkdown = (text) => {
     return text
   }
 }
+
+const productMessageRows = computed(() => {
+  const productMessages = messages.value.filter(m => m.type === 'product')
+  const rows = []
+  for (let i = 0; i < productMessages.length; i += 2) {
+    rows.push(productMessages.slice(i, i + 2))
+  }
+  return rows
+})
 </script>
