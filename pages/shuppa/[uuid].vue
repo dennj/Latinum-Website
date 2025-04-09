@@ -91,11 +91,11 @@ const sendMessage = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ Message: messageText, wallet: useRoute().params.uuid }),
+      body: JSON.stringify({ message: messageText, wallet: useRoute().params.uuid })
     })
 
     const data = await response.json()
-    messages.value.push(...data)
+    messages.value.push(...(Array.isArray(data) ? data : [data]))
     scrollToBottom()
   } catch (err) {
     console.error('Failed to send message:', err)

@@ -3,13 +3,13 @@ import { ChatOpenAI } from '@langchain/openai'
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { RunnableSequence } from '@langchain/core/runnables'
 import { findProductTool } from '@/server/tools/findProductTool'
-import { buyProducts } from '@/server/tools/buyProductTool'
+import { buyProduct } from '@/server/tools/buyProductTool'
 import { serverSupabaseClient } from '#supabase/server'
 import { SupabaseChatMessageHistory } from '@/server/memory/SupabaseChatMessageHistory'
 
 export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)
-  const { Message: message, wallet: walletUUID } = await readBody(event)
+  const { message: message, wallet: walletUUID } = await readBody(event)
 
   if (!message || !walletUUID) {
     throw createError({
@@ -72,7 +72,7 @@ ${ordersText || 'No orders yet.'}
       \`\`\`
       Then explain the action to the user.
       Never simulate confirmations or perform actions yourself — only describe and let the tools handle it.`],
-    ])
+  ])
 
   const detectChain = RunnableSequence.from([initialPrompt, llm])
   const firstReply = await detectChain.invoke({ input: message, chat_history: chatHistory })
@@ -92,26 +92,26 @@ ${ordersText || 'No orders yet.'}
     try {
       const toolResponse = await findProductTool.invoke(message)
       const parsed = JSON.parse(toolResponse)
-  
+
       if (Array.isArray(parsed)) {
         products = parsed
-  
+
         // 🧠 Save to product table via upsert
         const upsertPayload = products.map(p => ({
           id: p.product_id,
           name: p.name,
           image: p.image,
-          price: Math.round(100*p.price),
+          price: Math.round(100 * p.price),
         }))
-  
+
         const { error: upsertError } = await client
           .from('product')
           .upsert(upsertPayload)
-  
+
         if (upsertError) {
           console.error('⚠️ Failed to upsert products:', upsertError)
         }
-  
+
         followupContent = products.map(p =>
           `Product: ${p.name}\nID: ${p.product_id}\nPrice: €${p.price.toFixed(2)}\n\n`
         ).join('')
@@ -141,7 +141,7 @@ ${ordersText || 'No orders yet.'}
       }
 
       // Call the direct function with all necessary parameters
-      const buyResponse = await buyProducts(walletUUID, productIDs, event)
+      const buyResponse = await buyProduct(walletUUID, productIDs, event)
       followupContent = buyResponse || '✅ Product added to cart.'
     } catch (err) {
       console.error('Error in buyProducts:', err)
