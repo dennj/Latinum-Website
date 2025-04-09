@@ -96,28 +96,33 @@ ${ordersText || 'No orders yet.'}
       if (Array.isArray(parsed)) {
         products = parsed
 
-        // 🧠 Save to product table via upsert
-        const upsertPayload = products.map(p => ({
-          id: p.product_id,
-          name: p.name,
-          image: p.image,
-          price: Math.round(100 * p.price),
-        }))
+        if (products.length === 0) {
+          followupContent = "Tell the user we don't have this item in our catalog."
+        } else {
+          // 🧠 Save to product table via upsert
+          const upsertPayload = products.map(p => ({
+            id: p.product_id,
+            name: p.name,
+            image: p.image,
+            price: Math.round(100 * p.price),
+          }))
 
-        const { error: upsertError } = await client
-          .from('product')
-          .upsert(upsertPayload)
+          const { error: upsertError } = await client
+            .from('product')
+            .upsert(upsertPayload)
 
-        if (upsertError) {
-          console.error('⚠️ Failed to upsert products:', upsertError)
+          if (upsertError) {
+            console.error('⚠️ Failed to upsert products:', upsertError)
+          }
+
+          followupContent = products.map(p =>
+            `Product: ${p.name}\nID: ${p.product_id}\nPrice: €${p.price.toFixed(2)}\n\n`
+          ).join('')
         }
-
-        followupContent = products.map(p =>
-          `Product: ${p.name}\nID: ${p.product_id}\nPrice: €${p.price.toFixed(2)}\n\n`
-        ).join('')
       }
     } catch (err) {
       console.error('Error in findProductTool:', err)
+      followupContent = "Something went wrong while searching for products. Please try again."
     }
   }
 
