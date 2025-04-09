@@ -12,6 +12,13 @@
         <FormField label="Address" v-model="wallet.address" />
         <FormField label="Email" v-model="wallet.email" />
         <FormField label="Phone" v-model="wallet.phone" />
+
+        <!-- Save Button -->
+        <button @click="saveWallet"
+          class="mt-2 bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded-md hover:bg-blue-700 transition">
+          Save
+        </button>
+
         <div class="font-medium">Credits:</div>
         <div>€{{ wallet.credits }}</div>
       </div>
@@ -19,12 +26,12 @@
       <ClientOnly>
         <!-- Cart Items -->
         <div>
-          <div class="font-medium mb-2 text-blue-600">Current Cart</div>
+          <div class="font-medium mb-2 text-blue-600">Current Basket</div>
           <div v-if="cartItems.length" class="grid grid-cols-2 gap-3 mb-3">
             <ProductCard v-for="(item, index) in cartItems" :key="index" :item="item" :removable="true"
               :onRemove="removeFromCart" />
           </div>
-          <div v-else class="text-xs text-gray-400">Your cart is empty</div>
+          <div v-else class="text-xs text-gray-400">Your basket is empty</div>
 
           <button v-if="cartItems.length" @click="handlePayment"
             class="w-full bg-blue-600 text-white text-sm font-semibold py-2 rounded-md hover:bg-blue-700 transition">
@@ -34,7 +41,7 @@
 
         <!-- Completed Orders -->
         <div>
-          <div class="font-medium mb-2 text-blue-600">Completed Orders</div>
+          <div class="font-medium mb-2 text-blue-600">Previous Orders</div>
           <div v-if="completedOrders.length" class="grid grid-cols-2 gap-3">
             <ProductCard v-for="(item, index) in completedOrders" :key="index" :item="item" />
           </div>
@@ -60,7 +67,8 @@ function debounce(fn, delay) {
   }
 }
 
-const saveWallet = async () => {
+const saveWallet = async (event) => {
+  event.preventDefault()
   const supabase = useSupabaseClient()
 
   const { error } = await supabase
@@ -151,8 +159,10 @@ onMounted(async () => {
     },
     payload => {
       console.log('🔁 Wallet updated:', payload)
+      // Only update credit field, preserve other form fields
       wallet.value = {
-        ...payload.new,
+        ...wallet.value,
+        credit: payload.new.credit,
         credits: (payload.new.credit ?? 0) / 100
       }
     }
