@@ -1,55 +1,71 @@
+// server/tools/buyProductTool.ts
 import { serverSupabaseClient } from '#supabase/server'
 
-export async function buyProducts(walletUUID: string, productIDs: number[], event: any) {
-  console.log('💬 [buyProducts] Executing with:', { walletUUID, productIDs })
+export async function buyProduct(walletUUID: string, productIDs: number[], event: any): Promise<string> {
+    try {
+        if (!walletUUID || !Array.isArray(productIDs) || productIDs.length === 0) {
+            return '❌ Invalid input. Expected wallet UUID and an array of product IDs.'
+        }
 
-  try {
-    if (!walletUUID || !Array.isArray(productIDs) || !productIDs.length) {
-      return '❌ Invalid input. Expected wallet UUID and product_ids array.'
+        const client = await serverSupabaseClient(event)
+
+        // 1. Fetch wallet
+        const { data: walletData, error: walletError } = await client
+            .from('wallet')
+            .select('credit')
+            .eq('uuid', walletUUID)
+            .single()
+
+        if (walletError || !walletData) return '❌ Wallet not found.'
+        const currentCredit = walletData.credit ?? 0
+
+        // 2. Fetch product data
+        const { data: products, error: productError } = await client
+            .from('product')
+            .select('id, name, price, image')
+            .in('id', productIDs)
+
+        if (productError || !products?.length) {
+            return '❌ Failed to retrieve product data.'
+        }
+
+        const totalCost = products.reduce((sum, p) => sum + p.price, 0)
+
+        if (currentCredit < totalCost) {
+            return `❌ Not enough credit. Required: €${(totalCost / 100).toFixed(2)}`
+        }
+
+        // 3. Insert paid orders
+        const orderRows = products.map(p => ({
+            wallet: walletUUID,
+            product_id: p.id,
+            title: p.name,
+            image: p.image,
+            price: p.price,
+            paid: true,
+        }))
+
+        const { error: orderError } = await client
+            .from('orders')
+            .insert(orderRows)
+
+        if (orderError) {
+            return `❌ Failed to insert orders: ${orderError.message}`
+        }
+
+        // 4. Deduct credit
+        const { error: creditError } = await client
+            .from('wallet')
+            .update({ credit: currentCredit - totalCost })
+            .eq('uuid', walletUUID)
+
+        if (creditError) {
+            return `⚠️ Order placed but failed to update wallet credit: ${creditError.message}`
+        }
+
+        return `✅ Successfully purchased ${products.length} product(s) for €${(totalCost / 100).toFixed(2)}.`
+    } catch (err: any) {
+        console.error('❌ buyProduct error:', err)
+        return `❌ An unexpected error occurred: ${err.message}`
     }
-
-    if (!event) return '❌ Missing event context. Cannot access Supabase client.'
-
-    const client = await serverSupabaseClient(event)
-    if (!client) return '❌ Failed to initialize Supabase client.'
-
-    // Fetch product data
-    const ids = productIDs.map(p => typeof p === 'object' ? p.id : p)
-
-    const { data: products, error: productError } = await client
-      .from('product')
-      .select('id, name, image, price')
-      .in('id', ids)
-
-    if (productError) {
-      return `❌ Failed to fetch product ${productIDs} info: ${productError.message}`
-    }
-
-    if (!products || products.length === 0) {
-      return `❌ No matching products found.`
-    }
-
-    // Prepare the orders to insert
-    const insertOrders = products.map(product => ({
-      wallet: walletUUID,
-      product_id: product.id,
-      paid: false,
-      title: product.name,
-      price: product.price,
-      image: product.image,
-    }))
-
-    const { error: insertError } = await client
-      .from('orders')
-      .upsert(insertOrders)
-
-    if (insertError) {
-      return `❌ Failed to insert into orders table: ${insertError.message}`
-    }
-
-    return `✅ Added ${insertOrders.length} product(s) to your cart (orders).`
-  } catch (err: any) {
-    console.error('Error in buyProducts:', err)
-    return `❌ Error in buyProducts: ${err.message}`
-  }
 }
