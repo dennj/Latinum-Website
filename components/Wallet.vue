@@ -24,24 +24,9 @@
       </div>
 
       <ClientOnly>
-        <!-- Cart Items -->
-        <div>
-          <div class="font-medium mb-2 text-blue-600">Current Basket</div>
-          <div v-if="cartItems.length" class="grid grid-cols-2 gap-3 mb-3">
-            <ProductCard v-for="(item, index) in cartItems" :key="index" :item="item" :removable="true"
-              :onRemove="removeFromCart" />
-          </div>
-          <div v-else class="text-xs text-gray-400">Your basket is empty</div>
-
-          <button v-if="cartItems.length" @click="handlePayment"
-            class="w-full bg-blue-600 text-white text-sm font-semibold py-2 rounded-md hover:bg-blue-700 transition">
-            Pay
-          </button>
-        </div>
-
         <!-- Completed Orders -->
         <div>
-          <div class="font-medium mb-2 text-blue-600">Previous Orders</div>
+          <div class="font-medium mb-2 text-blue-600">Orders</div>
           <div v-if="completedOrders.length" class="grid grid-cols-2 gap-3">
             <ProductCard v-for="(item, index) in completedOrders" :key="index" :item="item" />
           </div>
