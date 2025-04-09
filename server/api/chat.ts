@@ -78,8 +78,8 @@ ${ordersText || 'No orders yet.'}
   const firstReply = await detectChain.invoke({ input: message, chat_history: chatHistory })
   const fullText = typeof firstReply.content === 'string' ? firstReply.content.trim() : ''
 
-  const isSearch = fullText.startsWith('PRODUCT_SEARCH')
-  const isPurchase = fullText.startsWith('PRODUCT_PURCHASE')
+  const isSearch = fullText.includes('PRODUCT_SEARCH')
+  const isPurchase = fullText.includes('PRODUCT_PURCHASE')
 
   let products: any[] = []
   let followupContent = ''

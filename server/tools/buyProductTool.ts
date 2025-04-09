@@ -67,8 +67,6 @@ export async function buyProduct(walletUUID: string, email: string, name: string
         }
 
         if (email) {
-            console.log("send")
-
             const productList = products.map(p => `• ${p.name} – €${(p.price / 100).toFixed(2)}`).join('\n')
 
             await resend.emails.send({
