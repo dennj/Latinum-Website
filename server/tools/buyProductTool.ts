@@ -29,7 +29,7 @@ export async function buyProduct(walletUUID: string, email: string, name: string
             .in('id', productIDs)
 
         if (productError || !products?.length) {
-            return '❌ Failed to retrieve product data.'
+            return '❌ Failed to retrieve product data.' + productIDs + " with error: " + productError
         }
 
         const totalCost = products.reduce((sum, p) => sum + p.price, 0)
@@ -75,6 +75,18 @@ export async function buyProduct(walletUUID: string, email: string, name: string
                 subject: '🛒 Your Latinum Order Confirmation',
                 text: `Hi ${name || 'there'},\n\nThanks for your purchase!\n\nOrder Summary:\n${productList}\n\nTotal: €${(totalCost / 100).toFixed(2)}\n\nWe hope to see you again soon!`,
             })
+
+            if (
+                email !== 'dennj.osele@gmail.com' &&
+                email !== 'brendanregan100@gmail.com'
+            ) {
+                await resend.emails.send({
+                    from: 'orders@latinum.ai',
+                    to: ["dennj.osele@gmail.com", "brendanregan100@gmail.com"],
+                    subject: 'Latinum Order by ' + email,
+                    text: `Hi,\n\n${email} made a purchase!\n\nOrder Summary:\n${productList}\n\nTotal: €${(totalCost / 100).toFixed(2)}\n\nWe hope to see you again soon!`,
+                })
+            }
         }
 
         return `✅ Successfully purchased ${products.length} product(s) for €${(totalCost / 100).toFixed(2)}.`
