@@ -43,8 +43,11 @@
         </button>
       </div>
       <ClientOnly>
-        <button v-if="recognition" @click="recognition.start()" class="ml-2 text-blue-600">
-          🎤 Speak
+        <button v-if="recognition" :disabled="isRecording" @click="recognition.start()" :class="[
+          'ml-2 px-2 py-1 rounded transition',
+          isRecording ? 'bg-red-500 text-white cursor-not-allowed' : 'text-blue-600 hover:bg-blue-100'
+        ]">
+          🎤 {{ isRecording ? 'Listening...' : 'Speak' }}
         </button>
       </ClientOnly>
     </div>
@@ -151,6 +154,7 @@ const groupedMessages = computed(() => {
 
 
 let recognition
+const isRecording = ref(false)
 
 if (process.client) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -168,6 +172,14 @@ if (process.client) {
   recognition.onerror = (event) => {
     console.error('🎙 Speech error:', event.error)
     alert('Voice recognition failed. Check microphone permissions.')
+  }
+
+  recognition.onstart = () => {
+    isRecording.value = true
+  }
+
+  recognition.onend = () => {
+    isRecording.value = false
   }
 }
 </script>
