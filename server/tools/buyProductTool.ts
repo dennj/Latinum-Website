@@ -1,7 +1,10 @@
 // server/tools/buyProductTool.ts
 import { serverSupabaseClient } from '#supabase/server'
+import { Resend } from 'resend'
 
-export async function buyProduct(walletUUID: string, productIDs: number[], event: any): Promise<string> {
+const resend = new Resend("re_PqKBMJpE_JjfQXQrosvu25rqD6bPhDo7W")
+
+export async function buyProduct(walletUUID: string, email: string, name: string, productIDs: number[], event: any): Promise<string> {
     try {
         if (!walletUUID || !Array.isArray(productIDs) || productIDs.length === 0) {
             return '❌ Invalid input. Expected wallet UUID and an array of product IDs.'
@@ -61,6 +64,19 @@ export async function buyProduct(walletUUID: string, productIDs: number[], event
 
         if (creditError) {
             return `⚠️ Order placed but failed to update wallet credit: ${creditError.message}`
+        }
+
+        if (email) {
+            console.log("send")
+
+            const productList = products.map(p => `• ${p.name} – €${(p.price / 100).toFixed(2)}`).join('\n')
+
+            await resend.emails.send({
+                from: 'orders@latinum.ai',
+                to: email,
+                subject: '🛒 Your Latinum Order Confirmation',
+                text: `Hi ${name || 'there'},\n\nThanks for your purchase!\n\nOrder Summary:\n${productList}\n\nTotal: €${(totalCost / 100).toFixed(2)}\n\nWe hope to see you again soon!`,
+            })
         }
 
         return `✅ Successfully purchased ${products.length} product(s) for €${(totalCost / 100).toFixed(2)}.`

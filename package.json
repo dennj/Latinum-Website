@@ -29,6 +29,7 @@
     "nuxt-anchorscroll": "^1.0.5",
     "nuxt-gtag": "^3.0.2",
     "openai": "^4.91.1",
+    "resend": "^4.2.0",
     "vue": "latest",
     "vue-router": "latest",
     "vue3-mermaid": "^0.0.6"

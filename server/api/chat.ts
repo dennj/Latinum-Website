@@ -141,7 +141,7 @@ ${ordersText || 'No orders yet.'}
       }
 
       // Call the direct function with all necessary parameters
-      const buyResponse = await buyProduct(walletUUID, productIDs, event)
+      const buyResponse = await buyProduct(walletUUID, walletData.email, walletData.name, productIDs, event)
       followupContent = buyResponse || '✅ Product added to cart.'
     } catch (err) {
       console.error('Error in buyProducts:', err)
