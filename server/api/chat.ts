@@ -2,10 +2,10 @@
 import { ChatOpenAI } from '@langchain/openai'
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { RunnableSequence } from '@langchain/core/runnables'
-import { findProductTool } from '@/server/tools/findProductTool'
-import { buyProduct } from '@/server/tools/buyProductTool'
+import { buyProduct } from '../tools/buyProductTool'
 import { serverSupabaseClient } from '#supabase/server'
-import { SupabaseChatMessageHistory } from '@/server/memory/SupabaseChatMessageHistory'
+import { SupabaseChatMessageHistory } from '../memory/SupabaseChatMessageHistory'
+import { findProductTool } from '../tools/findProductTool'
 
 export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient(event)

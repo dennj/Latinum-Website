@@ -1,5 +1,3 @@
-import type { ModuleOptions as SitemapModuleOptions } from '@nuxtjs/sitemap';
-
 export default defineNuxtConfig({
   app: {
     head: {
@@ -18,18 +16,11 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
   },
 
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  },
-
   modules: [
+    '@nuxt/ui',
     '@nuxtjs/sitemap',
     '@nuxt/image',
     '@nuxtjs/supabase',
-    '@nuxtjs/tailwindcss',
     '@nuxt/eslint',
     'nuxt-gtag',
     '@formkit/nuxt',
@@ -45,6 +36,8 @@ export default defineNuxtConfig({
     redirect: false
   },
 
+  css: ['~/assets/style/main.css'],
+
   site: {
     url: 'https://latinum.ai',
     name: 'Latinum',
@@ -58,6 +51,10 @@ export default defineNuxtConfig({
 
   gtag: {
     //id: 'G-ZDXSPVM1D8'
+  },
+
+  future: {
+    compatibilityVersion: 4,
   },
 
   compatibilityDate: '2025-03-09',

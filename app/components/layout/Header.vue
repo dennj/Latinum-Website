@@ -22,6 +22,6 @@ const items = [
       <span class="text-blue-500">Latinum</span> AI
     </NuxtLink>
 
-    <UNavigationMenu :items="items" class="font-medium" />
+    <UNavigationMenu :items="items" class="font-medium text-red" />
   </header>
 </template>
