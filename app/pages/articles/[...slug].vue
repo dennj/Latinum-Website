@@ -19,10 +19,7 @@ const { copy } = useClipboard()
 
 function copyArticleLink() {
   copy(`${window.location.origin}${route.fullPath}`)
-
-  import('vue-sonner').then(({ toast }) => {
-    toast.success('Article link copied to clipboard')
-  })
+  toast.success('Article link copied to clipboard')
 }
 
 defineShortcuts({
@@ -30,10 +27,7 @@ defineShortcuts({
     usingInput: true,
     handler: () => {
       copy(`${window.location.origin}${route.fullPath}`)
-
-      import('vue-sonner').then(({ toast }) => {
-        toast.success('Article link copied to clipboard')
-      })
+      toast.success('Article link copied to clipboard')
     },
   },
 })

@@ -35,4 +35,7 @@ defineShortcuts({
     <FolioMeta :page :is-writing="route.path.includes('/articles/')" />
     <ContentRenderer dir="ltr" :value="page" />
   </div>
+
+  <Subscribe />
+
 </template>

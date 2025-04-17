@@ -30,48 +30,42 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   })
 
   if (error.value) {
-    import('vue-sonner').then(({ toast }) => {
-      toast.error('Failed to send message. Please try again.')
-    });
+    toast.error('Failed to send message. Please try again.')
     return
   }
 
-  import('vue-sonner').then(({ toast }) => {
-    toast.success('Your message has been sent!')
-  });
+  toast.success('Your message has been sent!')
   state.email = ''
   state.message = ''
 }
 </script>
 
 <template>
-  <section class="text-white">
-    <div class="container mx-auto max-w-2xl">
-      <div class="bg-gray-800 bg-opacity-70 p-6 rounded-2xl shadow-lg backdrop-blur-md">
-        <h3 class="text-3xl font-bold mb-4 text-center">Get in Touch</h3>
+  <div class="container mx-auto max-w-2xl">
+    <div class="bg-gray-800 bg-opacity-70 p-6 rounded-2xl shadow-lg backdrop-blur-md">
+      <h3 class="text-3xl font-bold mb-4 text-center">Get in Touch</h3>
 
-        <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
-          <!-- Email Field -->
-          <UFormField label="Email" name="email">
-            <UInput v-model="state.email" type="email" placeholder="you@example.com"
-              class="w-full bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500" />
-          </UFormField>
+      <UForm :schema="schema" :state="state" class="space-y-6" @submit="onSubmit">
+        <!-- Email Field -->
+        <UFormField label="Email" name="email">
+          <UInput v-model="state.email" type="email" placeholder="you@example.com"
+            class="w-full bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500" />
+        </UFormField>
 
-          <!-- Message Field -->
-          <UFormField label="Message" name="message">
-            <UTextarea v-model="state.message" placeholder="Write your message here..." :rows="6"
-              class="w-full bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500" />
-          </UFormField>
+        <!-- Message Field -->
+        <UFormField label="Message" name="message">
+          <UTextarea v-model="state.message" placeholder="Write your message here..." :rows="6"
+            class="w-full bg-gray-800 text-white placeholder-gray-400 border border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500" />
+        </UFormField>
 
-          <!-- Submit Button -->
-          <div class="flex justify-center pt-2">
-            <UButton type="submit"
-              class="text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-full font-semibold transition-colors">
-              Send Message
-            </UButton>
-          </div>
-        </UForm>
-      </div>
+        <!-- Submit Button -->
+        <div class="flex justify-center pt-2">
+          <UButton type="submit"
+            class="text-white bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-full font-semibold transition-colors">
+            Send Message
+          </UButton>
+        </div>
+      </UForm>
     </div>
-  </section>
+  </div>
 </template>

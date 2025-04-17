@@ -39,7 +39,7 @@
     </section>
 
     <!-- Features Section -->
-    <section class="min-h-[100vh] py-20 relative overflow-hidden">
+    <section class="min-h-[80vh] py-20 relative overflow-hidden">
       <!-- Blurred Background -->
       <div class="absolute top-40 right-20 w-80 h-80 bg-yellow-400 opacity-10 rounded-full filter blur-[100px]"></div>
 
@@ -62,8 +62,9 @@
       </div>
     </section>
 
-    <ContactForm />
-
+    <section class="py-20">
+      <ContactForm />
+    </section>
   </div>
 </template>
 
