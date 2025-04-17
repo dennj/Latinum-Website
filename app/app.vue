@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Toaster } from 'vue-sonner'
 </script>
 
 <template>
@@ -13,6 +14,7 @@
     </NuxtLayout>
     <DotPattern
       class="absolute inset-0 -z-10 size-full fill-white/5 [mask-image:radial-gradient(white,transparent_85%)]" />
+    <Toaster position="top-right" />
   </Body>
 
   </Html>
