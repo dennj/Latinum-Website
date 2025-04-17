@@ -32,13 +32,7 @@ defineShortcuts({
 
 <template>
   <div v-if="page">
-    <FolioMeta
-      :page
-      :is-writing="route.path.includes('/articles/')"
-    />
-    <ContentRenderer
-      dir="ltr"
-      :value="page"
-    />
+    <FolioMeta :page :is-writing="route.path.includes('/articles/')" />
+    <ContentRenderer dir="ltr" :value="page" />
   </div>
 </template>

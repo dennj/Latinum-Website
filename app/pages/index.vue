@@ -1,7 +1,9 @@
 <template>
   <div class="relative overflow-hidden bg-gray-950">
     <!-- Blurred Gradient Backgrounds -->
-    <div class="absolute top-0 left-0 w-72 h-72 bg-blue-500 opacity-25 rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+    <div
+      class="absolute top-0 left-0 w-72 h-72 bg-blue-500 opacity-25 rounded-full filter blur-3xl -translate-x-1/2 -translate-y-1/2">
+    </div>
 
     <!-- Hero Section -->
     <section class="text-white min-h-[100vh] py-16 flex items-center relative z-10">
@@ -12,15 +14,16 @@
             <span class="text-blue-500">Latinum</span>.ai
           </h1>
           <!-- Mission Statement -->
-          <p class="text-xl text-gray-300 italic mb-4">
-            “We believe conversations shouldn’t end in answers — they should end in action.”
+          <p class="text-xl text-gray-200 italic mb-4">
+            “Agents that can’t pay are just fancy search engines!”
           </p>
           <p class="text-lg text-blue-400 font-semibold mb-8">
             Latinum is the connection between AI agents and the real-world economy.
           </p>
 
           <p class="text-gray-400 mb-10">
-            We power transactions between personal AI agents and real-world sellers — including service search & orchestration, catalog access, identity, payment, rating and communication.
+            We power transactions between personal AI agents and real-world sellers — including service search &
+            orchestration, catalog access, identity, payment, rating and communication.
           </p>
         </div>
 
@@ -30,9 +33,6 @@
           <div class="mt-4 flex space-x-8">
             <NuxtImg src="/images/dpl.avif" alt="DogPatch Labs" class="h-12" draggable="false" />
             <NuxtImg src="/images/ndrc.avif" alt="NDRC" class="h-12" draggable="false" />
-            <a href="https://agentstxt.dev">
-              <span class="inline-block bg-gray-800 text-green-500 px-3 py-1 rounded-full text-sm">agent.txt</span>
-            </a>
           </div>
         </div>
       </div>
@@ -62,7 +62,8 @@
 
         <!-- CTA Section -->
         <div class="text-center mt-16">
-          <p class="text-gray-400 mb-4">Start offering your service to personal AI agents — and be part of the next wave of commerce.</p>
+          <p class="text-gray-400 mb-4">Start offering your service to personal AI agents — and be part of the next wave
+            of commerce.</p>
           <a href="mailto:dennj.osele@gmail.com"
             class="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition">
             Join the Seller Network
@@ -71,7 +72,6 @@
       </div>
     </section>
   </div>
-  <Subscribe />
 </template>
 
 <script setup>

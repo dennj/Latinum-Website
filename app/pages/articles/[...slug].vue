@@ -47,7 +47,7 @@ defineOgImage({
         Back
       </span>
     </NuxtLink>
-    <article class="writing mx-auto px-4 sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+    <article class="writing mx-auto px-4 pb-22 sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
       <h1>
         {{ page?.title }}
       </h1>
