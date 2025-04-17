@@ -59,18 +59,11 @@
             <p class="text-gray-300 mt-2">{{ feature.description }}</p>
           </div>
         </div>
-
-        <!-- CTA Section -->
-        <div class="text-center mt-16">
-          <p class="text-gray-400 mb-4">Start offering your service to personal AI agents — and be part of the next wave
-            of commerce.</p>
-          <a href="mailto:dennj.osele@gmail.com"
-            class="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-blue-700 transition">
-            Join the Seller Network
-          </a>
-        </div>
       </div>
     </section>
+
+    <ContactForm />
+
   </div>
 </template>
 
