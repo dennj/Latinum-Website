@@ -13,6 +13,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/seo',
     '@nuxtjs/supabase',
+    'nuxt-gtag',
   ],
 
   imports: {
@@ -70,4 +71,9 @@ export default defineNuxtConfig({
       routes: ['/'],
     },
   },
+
+  gtag: {
+    enabled: process.env.NODE_ENV === 'production',
+    id: 'G-5R6TDXM3TN'
+  }
 })
